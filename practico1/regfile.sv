@@ -18,16 +18,12 @@ module regfile
 		begin
 			if (we3 == 5'b00001 && wa3 != 5'b1)
 				register[wa3] = wd3;			
-			rd1 = (ra1 == 31) ? 64'b0 : register[ra1];
-			rd2 = (ra2 == 31) ? 64'b0 : register[ra2];
 		end
-/*
 	always_comb
 		begin
 			rd1 = (ra1 == 31) ? 64'b0 : register[ra1];
 			rd2 = (ra2 == 31) ? 64'b0 : register[ra2];
 		end
-*/
 endmodule 
 
 //porque me dibuja 64 registros
