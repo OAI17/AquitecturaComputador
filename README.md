@@ -1,1 +1,1 @@
-# AquitecturaComputador
+# ArquitecturaComputador
