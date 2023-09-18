@@ -6,11 +6,11 @@ module datapath #(parameter N = 64)
 				  input logic [1:0] AluSrc,
 				  input logic [3:0] AluControl,
 				  input logic Branch,
-				  input logic PC_BR,
 				  input logic memRead,
 				  input logic memWrite,
 				  input logic regWrite,
-				  input logic memtoReg,				  
+				  input logic memtoReg,
+				  input logic branchtoReg,
 				  input logic [31:0] IM_readData,
 				  input logic [N-1:0] DM_readData,
 				  input logic [3:0] EStatus,
@@ -25,8 +25,7 @@ module datapath #(parameter N = 64)
 	logic [N-1:0] NextPC, EVAddr;
 	logic EProc;
 	logic zero;
-
-
+	
 	fetch #(64) 	FETCH      (.PCSrc_F(PCSrc),
 								.clk(clk),
 								.reset(reset),
@@ -52,6 +51,7 @@ module datapath #(parameter N = 64)
 	execute #(64)   EXECUTE    (.AluSrc(AluSrc),
 								.AluControl(AluControl),
 								.PC_E(IM_addr),
+								.branchtoReg(branchtoReg),
 								.signImm_E(signImm),
 								.readData1_E(readData1),
 								.readData2_E(readData2),
@@ -59,13 +59,12 @@ module datapath #(parameter N = 64)
 								.PCBranch_E(E_Branch),
 								.aluResult_E(DM_addr),
 								.writeData_E(DM_writeData),
-								.zero_E(zero),
-								.PC_BR(PC_BR));
+								.zero_E(zero));
 
 	memory  		MEMORY     (.Branch_M(Branch),
 								.zero_M(zero),
-								.PCSrc_M(PCSrc),
-								.PC_BR(PC_BR));
+								.branchtoReg(branchtoReg),
+								.PCSrc_M(PCSrc));
 
 
 

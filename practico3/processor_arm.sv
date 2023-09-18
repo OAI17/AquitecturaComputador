@@ -10,7 +10,7 @@ module processor_arm #(parameter N = 64)
 
 	logic [31:0] q;
 	logic [3:0] AluControl;
-	logic reg2loc, regWrite, memtoReg, memRead, memWrite,PC_BR;
+	logic reg2loc, regWrite, memtoReg, memRead, memWrite, branchtoReg;
 	logic [1:0] AluSrc;
 	logic Exc, ExcAck, ERet, Branch;
 	logic [3:0] EStatus;
@@ -19,8 +19,8 @@ module processor_arm #(parameter N = 64)
 
 	controller  	c  (.reset(reset),
 						.instr(q[31:21]),
-						.ExcAck(ExcAck),
-						.ExtIRQ(ExtIRQ),
+						.extIRQ(ExtIRQ),
+						.excAck(ExcAck),
 						.AluControl(AluControl),
 						.reg2loc(reg2loc),
 						.regWrite(regWrite),
@@ -28,12 +28,12 @@ module processor_arm #(parameter N = 64)
 						.Branch(Branch),
 						.memtoReg(memtoReg),
 						.memRead(memRead),
-						.memWrite(memWrite),						
-						.Exc(Exc),
-						.ERet(ERet),
+						.memWrite(memWrite),
+						.branchtoReg(branchtoReg),
+						.exc(Exc),
+						.eRet(ERet),
 						.EStatus(EStatus),
-						.ExtIAck(ExtIAck),
-						.PC_BR);
+						.extIAck(ExtIAck));
 
 
 	datapath #(64)  dp (.reset(reset),
@@ -46,6 +46,7 @@ module processor_arm #(parameter N = 64)
 						.memWrite(memWrite),
 						.regWrite(regWrite),						
 						.memtoReg(memtoReg),
+						.branchtoReg(branchtoReg),
 						.IM_readData(q),
 						.DM_readData(DM_readData),
 						.IM_addr(IM_address),

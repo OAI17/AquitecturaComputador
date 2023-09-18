@@ -1,36 +1,123 @@
-module maindec (input logic [10:0] Op,
-					 input logic reset,
-					 output logic PC_BR,
-					 output logic  Reg2Loc,
-					 output logic [1:0] ALUSrc,
-					 output logic MemtoReg,
-					 output logic RegWrite,
-					 output logic MemRead,
-					 output logic MemWrite,
-					 output logic Branch,
-					 output logic [1:0] ALUOp,
-					 output logic ERet,
-					 output logic NotAnInstr,
-					 output logic [2:0] EStatus);
+module maindec(
+		input logic [10:0] Op,
+		input logic Reset,
+		output logic Reg2Loc, MemtoReg, RegWrite, MemRead,
+						 MemWrite, Branch, NotAnInstr, ERet, BranchToReg,
+		output logic [1:0] ALUSrc, ALUOp
+	);
 
-	always_comb
-		begin
-			casez (Op[10:0])
-				11 'b110_1011_0000 : begin Reg2Loc = 0; ALUSrc = 00; MemtoReg = 0; RegWrite = 0; MemRead = 0; MemWrite = 0; Branch = 0; ALUOp = 10; ERet = 0; NotAnInstr = 0; PC_BR = 1;end//BR
-				11 'b111_1100_0010 : begin Reg2Loc = 0; ALUSrc = 01; MemtoReg = 1; RegWrite = 1; MemRead = 1; MemWrite = 0; Branch = 0; ALUOp = 00; ERet = 0; NotAnInstr = 0; PC_BR = 0;end//LDUR 
-				11 'b111_1100_0000 : begin Reg2Loc = 1; ALUSrc = 01; MemtoReg = 0; RegWrite = 0; MemRead = 0; MemWrite = 1; Branch = 0; ALUOp = 00;	ERet = 0; NotAnInstr = 0; PC_BR = 0;end//STUR
-				11 'b101_1010_0??? : begin Reg2Loc = 1; ALUSrc = 00; MemtoReg = 0; RegWrite = 0; MemRead = 0; MemWrite = 0; Branch = 1; ALUOp = 01;	ERet = 0; NotAnInstr = 0; PC_BR = 0;end//CBZ
-				11 'b100_0101_1000 : begin Reg2Loc = 0; ALUSrc = 00; MemtoReg = 0; RegWrite = 1; MemRead = 0; MemWrite = 0; Branch = 0; ALUOp = 10;	ERet = 0; NotAnInstr = 0; PC_BR = 0;end//ADD
-				11 'b110_0101_1000 : begin Reg2Loc = 0; ALUSrc = 00; MemtoReg = 0; RegWrite = 1; MemRead = 0; MemWrite = 0; Branch = 0; ALUOp = 10;	ERet = 0; NotAnInstr = 0; PC_BR = 0;end//SUB
-				11 'b100_0101_0000 : begin Reg2Loc = 0; ALUSrc = 00; MemtoReg = 0; RegWrite = 1; MemRead = 0; MemWrite = 0; Branch = 0; ALUOp = 10;	ERet = 0; NotAnInstr = 0; PC_BR = 0;end//AND
-				11 'b101_0101_0000 : begin Reg2Loc = 0; ALUSrc = 00; MemtoReg = 0; RegWrite = 1; MemRead = 0; MemWrite = 0; Branch = 0; ALUOp = 10;	ERet = 0; NotAnInstr = 0; PC_BR = 0;end//ORR
-				11 'b110_1011_0100 : begin Reg2Loc = 0; ALUSrc = 00; MemtoReg = 1'bx; RegWrite = 0; MemRead = 0; MemWrite = 0; Branch = 1; ALUOp = 01; ERet = 1; NotAnInstr = 0; PC_BR = 0;end//ERET
-				11 'b110_1011_0000 : begin Reg2Loc = 1; ALUSrc = 1'bx; MemtoReg = 0; RegWrite = 1; MemRead = 0; MemWrite = 0; Branch = 0; ALUOp = 01;  ERet = 0; NotAnInstr = 0; PC_BR = 0;end// MRS
-				default : begin Reg2Loc = 1'bx; ALUSrc = 2'bxx; MemtoReg = 0; RegWrite = 0; MemRead = 0; MemWrite = 0; Branch = 0; ALUOp = 2'bxx; ERet = 0; NotAnInstr = 1; PC_BR = 0;end //Not an instruccion
-			endcase
-				
-			if (reset)
-				Reg2Loc = 0; ALUSrc = 00; MemtoReg = 0; RegWrite = 0; MemRead = 0; MemWrite = 0; Branch = 0; ALUOp = 00; ERet = 0; PC_BR = 0;
-		end
+	always_comb begin
+		NotAnInstr <= 1'b0;
+		BranchToReg <= 1'b0;
 		
+		if(Reset) begin
+			Reg2Loc <= 1'b0;
+			ALUSrc <= 2'b00;
+			MemtoReg <= 1'b0;
+			RegWrite <= 1'b0;
+			MemRead <= 1'b0;
+			MemWrite <= 1'b0;
+			Branch <= 1'b0;
+			ERet <= 1'b0;
+			ALUOp <= 2'b00;
+		end
+		else begin
+			casez(Op)
+			11'b111_1100_0010: begin	// LDUR
+					Reg2Loc <= 1'bx;
+					ALUSrc <= 2'b01;
+					MemtoReg <= 1'b1;
+					RegWrite <= 1'b1;
+					MemRead <= 1'b1;
+					MemWrite <= 1'b0;
+					Branch <= 1'b0;
+					ERet <= 1'b0;
+					ALUOp <= 2'b00;
+				end
+			11'b111_1100_0000: begin	// STUR
+					Reg2Loc <= 1'b1;
+					ALUSrc <= 2'b01;
+					MemtoReg <= 1'bx;
+					RegWrite <= 1'b0;
+					MemRead <= 1'b0;
+					MemWrite <= 1'b1;
+					Branch <= 1'b0;
+					ERet <= 1'b0;
+					ALUOp <= 2'b00;
+				end
+			11'b101_1010_0???: begin	// CBZ
+					Reg2Loc <= 1'b1;
+					ALUSrc <= 2'b00;
+					MemtoReg <= 1'bx;
+					RegWrite <= 1'b0;
+					MemRead <= 1'b0;
+					MemWrite <= 1'b0;
+					Branch <= 1'b1;
+					ERet <= 1'b0;
+					ALUOp <= 2'b01;
+				end
+			11'b100_0101_1000,
+			11'b110_0101_1000,
+			11'b100_0101_0000,
+			11'b101_0101_0000: begin	// ADD, SUB, AND, ORR (tipo R)
+					Reg2Loc <= 1'b0;
+					ALUSrc <= 2'b00;
+					MemtoReg <= 1'b0;
+					RegWrite <= 1'b1;
+					MemRead <= 1'b0;
+					MemWrite <= 1'b0;
+					Branch <= 1'b0;
+					ERet <= 1'b0;
+					ALUOp <= 2'b10;
+				end
+			11'b110_1011_0100: begin	// ERET
+					Reg2Loc <= 1'b0;
+					ALUSrc <= 2'b00;
+					MemtoReg <= 1'bx;
+					RegWrite <= 1'b0;
+					MemRead <= 1'b0;
+					MemWrite <= 1'b0;
+					Branch <= 1'b1;
+					ERet <= 1'b1;
+					ALUOp <= 2'b01;
+				end
+			11'b110_1010_1001: begin	// MRS
+					Reg2Loc <= 1'b1;
+					ALUSrc <= 2'b1x;
+					MemtoReg <= 1'b0;
+					RegWrite <= 1'b1;
+					MemRead <= 1'b0;
+					MemWrite <= 1'b0;
+					Branch <= 1'b0;
+					ERet <= 1'b0;
+					ALUOp <= 2'b01;
+				end
+			11'b110_1011_0000: begin	// BR
+					Reg2Loc <= 1'bx;
+					ALUSrc <= 2'b00;
+					MemtoReg <= 1'b0;
+					RegWrite <= 1'b0;
+					MemRead <= 1'b0;
+					MemWrite <= 1'b0;
+					Branch <= 1'b1;
+					ERet <= 1'b0;
+					ALUOp <= 2'b00;
+					BranchToReg <= 1'b1;
+				end
+			default: begin
+					Reg2Loc <= 1'bx;
+					ALUSrc <= 2'bxx;
+					MemtoReg <= 1'b0;
+					RegWrite <= 1'b0;
+					MemRead <= 1'b0;
+					MemWrite <= 1'b0;
+					Branch <= 1'b0;
+					ERet <= 1'b0;
+					NotAnInstr <= 1'b1;
+					ALUOp <= 2'bxx;
+				end
+			endcase
+		end
+	end
+
 endmodule

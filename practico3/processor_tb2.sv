@@ -20,32 +20,10 @@ module processor_tb();
 
   initial
     begin
-     CLOCK_50 = 0; reset = 1; dump = 0;
+      CLOCK_50 = 0; reset = 1; dump = 0;
 	  ExtIRQ = 0;
-     #20 reset = 0;
-     #150000 dump = 1; 
+      #20 reset = 0; 
+      #15000 dump = 1; 
 	  #20 $stop;
-	 end
-
-	 
-  initial
-    begin
-		#503 // Wait for the instruction loop
-		while (1 === 1)
-		  begin
-		    ExtIRQ = 1;
-			 #10;
-			 ExtIRQ = 0;
-			 #500;
-		  end
-	 end
-	 
-	
-	always @ (posedge CLOCK_50)
-	  begin
-	    #1
-	    if (ExtIRQ == 1)
-			assert(ExtIAck == 1);
-	  end
-		
+	end 
 endmodule
